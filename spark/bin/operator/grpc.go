@@ -13,6 +13,7 @@ import (
 	pbinternal "github.com/lightsparkdev/spark/proto/spark_internal"
 	pbtoken "github.com/lightsparkdev/spark/proto/spark_token"
 	pbtokeninternal "github.com/lightsparkdev/spark/proto/spark_token_internal"
+	pbtpre "github.com/lightsparkdev/spark/proto/tpre"
 	"github.com/lightsparkdev/spark/so"
 	"github.com/lightsparkdev/spark/so/authninternal"
 	"github.com/lightsparkdev/spark/so/dkg"
@@ -62,6 +63,10 @@ func RegisterGrpcServers(
 	// Private/Internal token SO <-> SO endpoint
 	sparkTokenInternalServer := sparkgrpc.NewSparkTokenInternalServer(config, dbClient)
 	pbtokeninternal.RegisterSparkTokenInternalServiceServer(grpcServer, sparkTokenInternalServer)
+
+	// T-PRE: Threshold Proxy Re-Encryption endpoint
+	tpreServer := sparkgrpc.NewTpreServer(config)
+	pbtpre.RegisterTpreServiceServer(grpcServer, tpreServer)
 
 	// Public ID challenge auth endpoint
 	authnServer, err := sparkgrpc.NewAuthnServer(sparkgrpc.AuthnServerConfig{

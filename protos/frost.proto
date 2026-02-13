@@ -17,6 +17,15 @@ service FrostService {
     rpc sign_frost(SignFrostRequest) returns (SignFrostResponse) {}
     rpc aggregate_frost(AggregateFrostRequest) returns (AggregateFrostResponse) {}
     rpc validate_signature_share(ValidateSignatureShareRequest) returns (google.protobuf.Empty) {}
+
+    // T-PRE: Compute partial ECDH for threshold proxy re-encryption.
+    // Each signer computes S_i = key_share_i * ephemeral_pubkey from the ECIES ciphertext.
+    rpc partial_ecdh(PartialEcdhRequest) returns (PartialEcdhResponse) {}
+
+    // T-PRE: Combined threshold decrypt + re-encrypt operation.
+    // Takes the partial ECDH shares from all operators, combines them via Lagrange
+    // interpolation, decrypts the content key, and re-encrypts it to the reader's public key.
+    rpc threshold_decrypt_reencrypt(ThresholdDecryptReencryptRequest) returns (ThresholdDecryptReencryptResponse) {}
 }
 
 message EchoRequest {
@@ -291,4 +300,85 @@ message ValidateSignatureShareRequest {
 
     // The commitments for all participants of the user.
     common.SigningCommitment user_commitments = 8;
+}
+
+/*
+ * T-PRE: Partial ECDH request.
+ *
+ * The operator sends the ephemeral public key from an ECIES ciphertext
+ * to the local FROST signer. The signer computes S_i = key_share_i * R
+ * using its FROST secret key share.
+ */
+message PartialEcdhRequest {
+    // Unique request identifier for correlation.
+    string request_id = 1;
+
+    // The 65-byte uncompressed ephemeral public key extracted from the ECIES ciphertext.
+    bytes ephemeral_public_key = 2;
+
+    // The key package containing the signer's secret share.
+    // Only the secret_share and identifier fields are used.
+    KeyPackage key_package = 3;
+}
+
+/*
+ * T-PRE: Partial ECDH response.
+ *
+ * Returns the signer's partial ECDH point: S_i = key_share_i * R.
+ * The operator collects t-of-n of these and uses Lagrange interpolation
+ * to reconstruct the full ECDH shared secret.
+ */
+message PartialEcdhResponse {
+    // The 65-byte uncompressed point S_i = key_share_i * ephemeral_pubkey.
+    bytes partial_ecdh_point = 1;
+
+    // The signer's identifier (echoed back for correlation).
+    string identifier = 2;
+}
+
+/*
+ * T-PRE: A partial ECDH share from one operator.
+ * Used as input to the combined threshold_decrypt_reencrypt RPC.
+ */
+message PartialEcdhShare {
+    // The 1-based FROST index of the operator that produced this share.
+    uint32 operator_index = 1;
+
+    // The 65-byte uncompressed point S_i = key_share_i * ephemeral_pubkey.
+    bytes partial_ecdh_point = 2;
+}
+
+/*
+ * T-PRE: Threshold decrypt and re-encrypt request.
+ *
+ * The coordinator sends all collected partial ECDH shares along with
+ * the sealed content key and the reader's public key. The signer:
+ * 1. Combines shares via Lagrange interpolation to get S = sk * R
+ * 2. Derives the AES key via HKDF(R || S) matching ecies crate format
+ * 3. Decrypts the content key with AES-256-GCM
+ * 4. Re-encrypts the content key to the reader's public key via ECIES
+ */
+message ThresholdDecryptReencryptRequest {
+    // The full ECIES ciphertext: [65-byte ephemeral pubkey R] [16-byte nonce] [16-byte tag] [encrypted content key].
+    bytes sealed_content_key = 1;
+
+    // The reader's public key (33 or 65 bytes) to re-encrypt to.
+    bytes reader_public_key = 2;
+
+    // The partial ECDH shares from threshold operators.
+    repeated PartialEcdhShare partial_shares = 3;
+
+    // The threshold (t in t-of-n).
+    uint32 threshold = 4;
+}
+
+/*
+ * T-PRE: Threshold decrypt and re-encrypt response.
+ */
+message ThresholdDecryptReencryptResponse {
+    // The content key re-encrypted to the reader's public key (ECIES ciphertext).
+    bytes re_encrypted_key = 1;
+    // The decrypted content key (plaintext). For PoC, allows direct delivery
+    // without requiring ECIES decrypt on the client side.
+    bytes content_key = 2;
 }

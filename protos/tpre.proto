@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package tpre;
+
+option go_package = "github.com/lightsparkdev/spark/proto/tpre";
+
+/*
+ * Threshold Proxy Re-Encryption Service.
+ *
+ * Enables payment-gated content key re-encryption. An author encrypts a
+ * symmetric content key to the federation's threshold public key at publish
+ * time. When a reader pays (via Spark statechain transfer), the federation
+ * threshold-decrypts the content key and re-encrypts it to the reader's
+ * public key.
+ *
+ * This service runs on each Spark operator and is accessible to SDK clients.
+ */
+service TpreService {
+    // Request re-encryption of a sealed content key after proving payment.
+    // The coordinator operator collects partial ECDH shares from peer operators'
+    // FROST signers, reconstructs the shared secret, decrypts the content key,
+    // and re-encrypts it to the reader's public key.
+    rpc request_re_encryption(ReEncryptionRequest) returns (ReEncryptionResponse) {}
+
+    // Internal: operator-to-operator request for a partial ECDH share.
+    // Called by the coordinator operator on peer operators during re-encryption.
+    rpc get_partial_ecdh_share(PartialEcdhShareRequest) returns (PartialEcdhShareResponse) {}
+}
+
+/*
+ * Re-encryption request from a reader (SDK client).
+ *
+ * The reader must have already completed a Spark transfer to the author
+ * as proof of payment.
+ */
+message ReEncryptionRequest {
+    // The full ECIES ciphertext: sealed content key encrypted to the
+    // federation's threshold public key.
+    // Format: [65-byte ephemeral pubkey] [16-byte nonce] [16-byte tag] [encrypted data]
+    bytes sealed_content_key = 1;
+
+    // The reader's secp256k1 public key (33 or 65 bytes).
+    // The content key will be re-encrypted to this key.
+    // This SHOULD be the reader's financial (wallet) public key for DRM purposes.
+    bytes reader_public_key = 2;
+
+    // The author's identity public key (33 bytes).
+    // Used to verify the payment was directed to the correct author.
+    bytes author_public_key = 3;
+
+    // The expected payment amount in satoshis.
+    uint64 payment_amount_sats = 4;
+
+    // The Spark transfer ID proving the reader paid the author.
+    string transfer_id = 5;
+
+    // Content identifier (e.g., SHA-256 hash of the post metadata).
+    // Used for idempotency: the same reader can only re-encrypt once per post.
+    bytes post_id = 6;
+}
+
+/*
+ * Re-encryption response to the reader.
+ *
+ * Contains the content key re-encrypted to the reader's public key.
+ */
+message ReEncryptionResponse {
+    // The content key re-encrypted as ECIES ciphertext sealed to reader_public_key.
+    bytes re_encrypted_key = 1;
+
+    // The post_id echoed back for correlation.
+    bytes post_id = 2;
+
+    // The decrypted content key (plaintext hex). For PoC, allows direct delivery
+    // without requiring ECIES decrypt on the client side.
+    bytes content_key = 3;
+}
+
+/*
+ * Internal: partial ECDH share request between operators.
+ *
+ * The coordinator operator sends this to each peer operator. The peer
+ * forwards it to its local FROST signer.
+ */
+message PartialEcdhShareRequest {
+    // Unique request identifier for correlation across operators.
+    string request_id = 1;
+
+    // The 65-byte uncompressed ephemeral public key from the ECIES ciphertext.
+    bytes ephemeral_public_key = 2;
+
+    // The signing keyshare ID to use for the partial ECDH.
+    // This identifies which FROST key share the signer should use.
+    string keyshare_id = 3;
+}
+
+/*
+ * Internal: partial ECDH share response from a peer operator.
+ */
+message PartialEcdhShareResponse {
+    // The 65-byte uncompressed partial ECDH point: S_i = key_share_i * R.
+    bytes partial_ecdh_point = 1;
+
+    // The operator's identifier (for Lagrange interpolation).
+    string operator_identifier = 2;
+}

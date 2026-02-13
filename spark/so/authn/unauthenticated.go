@@ -68,6 +68,10 @@ func DefaultUnauthenticatedConfig() UnauthenticatedConfig {
 			"/mock.MockService/",
 			"/spark_internal.SparkInternalService/",
 			"/spark_token.SparkTokenInternalService/",
+			// T-PRE: Both public (request_re_encryption) and internal (get_partial_ecdh_share)
+			// endpoints bypass authn for the PoC. In production, get_partial_ecdh_share
+			// would use service-level auth (IP-based or mTLS) via the authz layer.
+			"/tpre.TpreService/",
 		},
 	}
 }

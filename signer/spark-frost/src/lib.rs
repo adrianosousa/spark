@@ -5,6 +5,7 @@ pub mod bridge;
 pub mod htlc;
 pub mod proto;
 pub mod signing;
+pub mod tpre;
 pub mod transaction;
 
 /// Convert a hex string to an identifier.

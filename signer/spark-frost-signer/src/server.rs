@@ -277,4 +277,122 @@ impl FrostService for FrostServer {
             .map_err(Status::internal)
             .map(|_| Response::new(()))
     }
+
+    /// T-PRE: Compute partial ECDH for threshold proxy re-encryption.
+    ///
+    /// Each signer computes S_i = key_share_i * ephemeral_pubkey using its
+    /// FROST secret key share and the ephemeral public key from the ECIES
+    /// ciphertext. The operator collects t-of-n of these shares and uses
+    /// Lagrange interpolation to reconstruct the full ECDH shared secret.
+    async fn partial_ecdh(
+        &self,
+        request: Request<PartialEcdhRequest>,
+    ) -> Result<Response<PartialEcdhResponse>, Status> {
+        tracing::info!("Received T-PRE partial ECDH request");
+        let req = request.get_ref();
+
+        // Extract the secret key share from the key package
+        let key_package = req
+            .key_package
+            .as_ref()
+            .ok_or_else(|| Status::invalid_argument("key_package is required"))?;
+
+        let secret_share = &key_package.secret_share;
+        if secret_share.len() != 32 {
+            return Err(Status::invalid_argument(format!(
+                "secret_share must be 32 bytes, got {}",
+                secret_share.len()
+            )));
+        }
+
+        let ephemeral_pk = &req.ephemeral_public_key;
+        if ephemeral_pk.len() != 65 {
+            return Err(Status::invalid_argument(format!(
+                "ephemeral_public_key must be 65 bytes (uncompressed), got {}",
+                ephemeral_pk.len()
+            )));
+        }
+
+        // Compute partial ECDH: S_i = key_share_i * R
+        let partial_point = spark_frost::tpre::partial_ecdh(secret_share, ephemeral_pk)
+            .map_err(|e| Status::internal(format!("partial ECDH failed: {e}")))?;
+
+        tracing::info!("T-PRE partial ECDH computed successfully");
+
+        Ok(Response::new(PartialEcdhResponse {
+            partial_ecdh_point: partial_point,
+            identifier: key_package.identifier.clone(),
+        }))
+    }
+
+    /// T-PRE: Combined threshold decrypt and re-encrypt.
+    ///
+    /// Takes the partial ECDH shares from threshold operators, combines them
+    /// via Lagrange interpolation, decrypts the content key from the ECIES
+    /// ciphertext, and re-encrypts it to the reader's public key.
+    async fn threshold_decrypt_reencrypt(
+        &self,
+        request: Request<ThresholdDecryptReencryptRequest>,
+    ) -> Result<Response<ThresholdDecryptReencryptResponse>, Status> {
+        tracing::info!("Received T-PRE threshold decrypt+reencrypt request");
+        let req = request.get_ref();
+
+        // Validate input
+        if req.sealed_content_key.len() < 97 {
+            return Err(Status::invalid_argument(format!(
+                "sealed_content_key too short: {} bytes, need at least 97",
+                req.sealed_content_key.len()
+            )));
+        }
+        if req.reader_public_key.len() != 33 && req.reader_public_key.len() != 65 {
+            return Err(Status::invalid_argument(format!(
+                "reader_public_key must be 33 or 65 bytes, got {}",
+                req.reader_public_key.len()
+            )));
+        }
+        if req.partial_shares.is_empty() {
+            return Err(Status::invalid_argument("no partial shares provided"));
+        }
+        if req.threshold == 0 {
+            return Err(Status::invalid_argument("threshold must be > 0"));
+        }
+
+        // Convert proto shares to (index, point) tuples for the combiner
+        let shares: Vec<(u32, Vec<u8>)> = req
+            .partial_shares
+            .iter()
+            .map(|s| (s.operator_index, s.partial_ecdh_point.clone()))
+            .collect();
+
+        // Step 1: Combine partial ECDH shares via Lagrange interpolation
+        let combined_point = spark_frost::tpre::combine_ecdh_shares(&shares)
+            .map_err(|e| Status::internal(format!("failed to combine ECDH shares: {e}")))?;
+
+        // Step 2: Threshold decrypt the content key
+        // threshold_decrypt_with_shared_point extracts the ephemeral pubkey internally
+        let content_key = spark_frost::tpre::threshold_decrypt_with_shared_point(
+            &req.sealed_content_key,
+            &combined_point,
+        )
+        .map_err(|e| Status::internal(format!("threshold decryption failed: {e}")))?;
+
+        tracing::info!(
+            "T-PRE: decrypted content key ({} bytes), re-encrypting to reader",
+            content_key.len()
+        );
+
+        // Step 4: Re-encrypt the content key to the reader's public key
+        let re_encrypted = spark_frost::tpre::reencrypt(&content_key, &req.reader_public_key)
+            .map_err(|e| Status::internal(format!("re-encryption failed: {e}")))?;
+
+        tracing::info!(
+            "T-PRE: re-encryption complete ({} bytes)",
+            re_encrypted.len()
+        );
+
+        Ok(Response::new(ThresholdDecryptReencryptResponse {
+            re_encrypted_key: re_encrypted,
+            content_key: content_key,
+        }))
+    }
 }

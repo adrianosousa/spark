@@ -2680,3 +2680,600 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ValidateSignatureShareRequestValidationError{}
+
+// Validate checks the field values on PartialEcdhRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PartialEcdhRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PartialEcdhRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PartialEcdhRequestMultiError, or nil if none found.
+func (m *PartialEcdhRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PartialEcdhRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for RequestId
+
+	// no validation rules for EphemeralPublicKey
+
+	if all {
+		switch v := interface{}(m.GetKeyPackage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PartialEcdhRequestValidationError{
+					field:  "KeyPackage",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PartialEcdhRequestValidationError{
+					field:  "KeyPackage",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetKeyPackage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PartialEcdhRequestValidationError{
+				field:  "KeyPackage",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return PartialEcdhRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// PartialEcdhRequestMultiError is an error wrapping multiple validation errors
+// returned by PartialEcdhRequest.ValidateAll() if the designated constraints
+// aren't met.
+type PartialEcdhRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PartialEcdhRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PartialEcdhRequestMultiError) AllErrors() []error { return m }
+
+// PartialEcdhRequestValidationError is the validation error returned by
+// PartialEcdhRequest.Validate if the designated constraints aren't met.
+type PartialEcdhRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PartialEcdhRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PartialEcdhRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PartialEcdhRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PartialEcdhRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PartialEcdhRequestValidationError) ErrorName() string {
+	return "PartialEcdhRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PartialEcdhRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPartialEcdhRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PartialEcdhRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PartialEcdhRequestValidationError{}
+
+// Validate checks the field values on PartialEcdhResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PartialEcdhResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PartialEcdhResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PartialEcdhResponseMultiError, or nil if none found.
+func (m *PartialEcdhResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PartialEcdhResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for PartialEcdhPoint
+
+	// no validation rules for Identifier
+
+	if len(errors) > 0 {
+		return PartialEcdhResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// PartialEcdhResponseMultiError is an error wrapping multiple validation
+// errors returned by PartialEcdhResponse.ValidateAll() if the designated
+// constraints aren't met.
+type PartialEcdhResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PartialEcdhResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PartialEcdhResponseMultiError) AllErrors() []error { return m }
+
+// PartialEcdhResponseValidationError is the validation error returned by
+// PartialEcdhResponse.Validate if the designated constraints aren't met.
+type PartialEcdhResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PartialEcdhResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PartialEcdhResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PartialEcdhResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PartialEcdhResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PartialEcdhResponseValidationError) ErrorName() string {
+	return "PartialEcdhResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PartialEcdhResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPartialEcdhResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PartialEcdhResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PartialEcdhResponseValidationError{}
+
+// Validate checks the field values on PartialEcdhShare with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *PartialEcdhShare) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PartialEcdhShare with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PartialEcdhShareMultiError, or nil if none found.
+func (m *PartialEcdhShare) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PartialEcdhShare) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for OperatorIndex
+
+	// no validation rules for PartialEcdhPoint
+
+	if len(errors) > 0 {
+		return PartialEcdhShareMultiError(errors)
+	}
+
+	return nil
+}
+
+// PartialEcdhShareMultiError is an error wrapping multiple validation errors
+// returned by PartialEcdhShare.ValidateAll() if the designated constraints
+// aren't met.
+type PartialEcdhShareMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PartialEcdhShareMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PartialEcdhShareMultiError) AllErrors() []error { return m }
+
+// PartialEcdhShareValidationError is the validation error returned by
+// PartialEcdhShare.Validate if the designated constraints aren't met.
+type PartialEcdhShareValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PartialEcdhShareValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PartialEcdhShareValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PartialEcdhShareValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PartialEcdhShareValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PartialEcdhShareValidationError) ErrorName() string { return "PartialEcdhShareValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PartialEcdhShareValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPartialEcdhShare.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PartialEcdhShareValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PartialEcdhShareValidationError{}
+
+// Validate checks the field values on ThresholdDecryptReencryptRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ThresholdDecryptReencryptRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ThresholdDecryptReencryptRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// ThresholdDecryptReencryptRequestMultiError, or nil if none found.
+func (m *ThresholdDecryptReencryptRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ThresholdDecryptReencryptRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for SealedContentKey
+
+	// no validation rules for ReaderPublicKey
+
+	for idx, item := range m.GetPartialShares() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ThresholdDecryptReencryptRequestValidationError{
+						field:  fmt.Sprintf("PartialShares[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ThresholdDecryptReencryptRequestValidationError{
+						field:  fmt.Sprintf("PartialShares[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ThresholdDecryptReencryptRequestValidationError{
+					field:  fmt.Sprintf("PartialShares[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Threshold
+
+	if len(errors) > 0 {
+		return ThresholdDecryptReencryptRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ThresholdDecryptReencryptRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// ThresholdDecryptReencryptRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ThresholdDecryptReencryptRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ThresholdDecryptReencryptRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ThresholdDecryptReencryptRequestMultiError) AllErrors() []error { return m }
+
+// ThresholdDecryptReencryptRequestValidationError is the validation error
+// returned by ThresholdDecryptReencryptRequest.Validate if the designated
+// constraints aren't met.
+type ThresholdDecryptReencryptRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ThresholdDecryptReencryptRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ThresholdDecryptReencryptRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ThresholdDecryptReencryptRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ThresholdDecryptReencryptRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ThresholdDecryptReencryptRequestValidationError) ErrorName() string {
+	return "ThresholdDecryptReencryptRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ThresholdDecryptReencryptRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sThresholdDecryptReencryptRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ThresholdDecryptReencryptRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ThresholdDecryptReencryptRequestValidationError{}
+
+// Validate checks the field values on ThresholdDecryptReencryptResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ThresholdDecryptReencryptResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ThresholdDecryptReencryptResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ThresholdDecryptReencryptResponseMultiError, or nil if none found.
+func (m *ThresholdDecryptReencryptResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ThresholdDecryptReencryptResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ReEncryptedKey
+
+	if len(errors) > 0 {
+		return ThresholdDecryptReencryptResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ThresholdDecryptReencryptResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// ThresholdDecryptReencryptResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ThresholdDecryptReencryptResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ThresholdDecryptReencryptResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ThresholdDecryptReencryptResponseMultiError) AllErrors() []error { return m }
+
+// ThresholdDecryptReencryptResponseValidationError is the validation error
+// returned by ThresholdDecryptReencryptResponse.Validate if the designated
+// constraints aren't met.
+type ThresholdDecryptReencryptResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ThresholdDecryptReencryptResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ThresholdDecryptReencryptResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ThresholdDecryptReencryptResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ThresholdDecryptReencryptResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ThresholdDecryptReencryptResponseValidationError) ErrorName() string {
+	return "ThresholdDecryptReencryptResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ThresholdDecryptReencryptResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sThresholdDecryptReencryptResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ThresholdDecryptReencryptResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ThresholdDecryptReencryptResponseValidationError{}
