@@ -218,7 +218,7 @@ This PoC demonstrates the cryptographic feasibility and end-to-end flow. Moving 
 
 ## Related
 
-- [Spark Protocol](https://github.com/lightsparkdev/spark) — Bitcoin L2 by Lightspark
+- [Spark Protocol](https://github.com/buildonspark/spark) — Bitcoin L2 by Lightspark
 - [TzimTzum](https://github.com/adrianosousa/tzimtzum) — P2P content platform (Pear Runtime) with T-PRE paywall integration
 - [FROST](https://eprint.iacr.org/2020/852) — Flexible Round-Optimized Schnorr Threshold Signatures
 - [Pear Runtime](https://pears.com) — P2P application runtime (Hyperswarm + Hypercore)
