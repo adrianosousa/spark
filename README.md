@@ -12,9 +12,11 @@ P2P content platforms face a fundamental tension: **paywalled content requires t
 
 Current approaches (like Hyperswarm-based key delivery) require a live connection between author and reader. If the author is offline, asleep, or behind a NAT — the reader pays but can't access the content.
 
+Existing threshold decryption solutions (e.g. LIT Protocol, NuCypher/TACo) address this on EVM chains but require their own dedicated networks, their own tokens, and their own infrastructure. There is no Bitcoin-native solution.
+
 ## The Solution
 
-T-PRE leverages the existing Spark operator federation (5 operators with FROST threshold keys from DKG) to act as a **threshold decryption oracle**:
+T-PRE leverages the **existing** Spark operator federation (5 operators with FROST threshold keys from DKG) to act as a **threshold decryption oracle** — requiring zero additional infrastructure, zero new tokens, and no dependency on EVM chains:
 
 1. **Author publishes**: Encrypts content with a random key, seals that key to the federation's threshold public key via ECIES
 2. **Reader pays**: Submits a Spark transfer to the author (Bitcoin L2 payment)
@@ -25,11 +27,11 @@ The author can be completely offline. The federation never learns the content �
 
 ## Live Demo: TzimTzum
 
-This PoC is integrated with [TzimTzum](https://github.com/adrianosousa/tzimtzum), a P2P blogging platform built on [Pear Runtime](https://pears.com) (Hyperswarm + Hyperbee). The end-to-end flow has been tested and verified:
+This PoC is integrated with [TzimTzum](https://github.com/adrianosousa/tzimtzum), a P2P content platform built on [Pear Runtime](https://pears.com) (Hyperswarm + Hyperbee). The end-to-end flow has been tested and verified:
 
-- Author publishes a paywalled post on TzimTzum (content encrypted with XSalsa20-Poly1305, key sealed to federation via ECIES)
+- Author publishes a paywalled article on TzimTzum (content encrypted with XSalsa20-Poly1305, key sealed to federation via ECIES)
 - Author **goes completely offline** (closes the app)
-- Reader subscribes to the author's blog, sees the paywalled post with a "T-PRE Enabled — Author can be offline" badge
+- Reader discovers the author's content, sees the paywalled article with a "T-PRE Enabled — Author can be offline" badge
 - Reader clicks unlock, the Bare process shells out to `grpcurl` which calls the federation's `TpreService/request_re_encryption` endpoint
 - Federation threshold-decrypts the content key and returns it
 - Reader decrypts the article content locally
@@ -217,7 +219,7 @@ This PoC demonstrates the cryptographic feasibility and end-to-end flow. Moving 
 ## Related
 
 - [Spark Protocol](https://github.com/lightsparkdev/spark) — Bitcoin L2 by Lightspark
-- [TzimTzum](https://github.com/adrianosousa/tzimtzum) — P2P blogging platform (Pear Runtime) with T-PRE paywall integration
+- [TzimTzum](https://github.com/adrianosousa/tzimtzum) — P2P content platform (Pear Runtime) with T-PRE paywall integration
 - [FROST](https://eprint.iacr.org/2020/852) — Flexible Round-Optimized Schnorr Threshold Signatures
 - [Pear Runtime](https://pears.com) — P2P application runtime (Hyperswarm + Hypercore)
 
